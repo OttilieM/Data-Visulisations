@@ -1,0 +1,237 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+#install.packages("tidytuesdayR")
+library("tidytuesdayR")
+library(tidyverse)
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+library(forcats)
+library(scales)
+library(ggalt)
+library(plotly)
+
+energy_types <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-04/energy_types.csv')
+country_totals <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-04/country_totals.csv')
+
+head(energy_types)
+head(country_totals)
+```
+First look at data
+*can do a map as includes country codes
+*graph of energy consumption bt type over time
+
+
+Looking at our country_totals data set, it looks like we have a summary of a country’s energy export/import. Where as the energy_types data set contains a breakdown of a country actual energy use by type. Looking at the levels vector, we have a Level 2 level. A tweet from Tom Mock outlines that we do not need to factor this into our data, as it is a subset of hydro. This means to include it would be to double count hydro. We can filter these entries out. Our raw energy totals are in Gigawatt Hours
+
+```{r}
+#take out level 2 so its duplicated
+energy_types <- energy_types %>% 
+  filter(level != "Level 2") 
+```
+
+
+```{r}
+#replace NA with United Kingdom
+energy_types %>% 
+  filter(is.na(country_name))
+#UK is missing
+energy_types <- energy_types %>% 
+  mutate(country_name = case_when(
+    country == "UK" ~ "United Kingdom",
+    TRUE ~ country_name
+  ))
+
+country_totals %>% 
+  filter(is.na(country_name))
+#UK missing again
+country_totals <- country_totals %>% 
+  mutate(country_name = case_when(
+    country == "UK" ~ "United Kingdom",
+    TRUE ~ country_name
+  ))
+```
+##Top 5 energy producers
+
+```{r}
+top_countries <- country_totals %>%
+  subset(type == "Total net production") %>%
+  slice_max(order_by = `2018`, n = 5)
+
+energy_types$type <- factor(energy_types$type, c("Conventional thermal", "Nuclear", "Hydro", "Wind", "Solar", "Geothermal", "Other"))
+
+energy_types$country_name <- replace_na(energy_types$country_name, "United Kingdom") 
+```
+
+```{r}
+p1 <- energy_types %>%
+  subset((country %in% top_countries$country) & (type == "Conventional thermal")) %>%
+  ggplot(aes(x = `2016`, xend = `2018`, y = country_name, group = country_name)) +
+  geom_dumbbell(colour_x = "red",
+                size_x = 2.5,
+                size = 0.75,
+                colour = "black",
+                colour_xend = "blue",
+                size_xend = 2.5) +
+  geom_point(x = 300000, y = 4, colour = "red", size = 2.5, inherit.aes = F) +
+  annotate("text", label = "2016", x = 330000, y = 4) +
+  geom_point(x = 300000, y = 3.8, color = "blue", size = 2.5, inherit.aes = FALSE) +
+  annotate("text", label = "2018", x = 330000, y = 3.8) +
+  scale_x_continuous(labels = comma) +
+  facet_wrap(~type, ncol = 1) +
+  labs(x = "Energy produced", y = element_blank())
+
+p1
+```
+
+
+```{r}
+top_countries1 <- energy_types %>%
+  subset((country %in% top_countries$country) & (type == "Conventional thermal"))
+
+top_countries1 <- subset(top_countries1, select = -c(`2017`))
+
+fig1 <- plot_ly(top_countries1, color = I("gray80"))
+
+fig1 <- fig1 %>% add_segments(x = ~top_countries1$`2016`, xend = ~top_countries$`2018`, y = ~top_countries1$country_name, yend = ~top_countries1$country_name, showlegend = F)
+
+fig1 <- fig1 %>% add_markers(x = ~top_countries$`2016`, y = ~top_countries$country_name, name = "2016", colour = I("pink"))
+
+fig1 <- fig1 %>% add_markers(x = ~top_countries$`2016`, y = ~top_countries$country_name, name = "2018", colour = I("blue"))
+
+fig1 <- fig1 %>% layout(
+    title = "Top energy producing countries using Conventional thermal",
+    xaxis = list(title = "Energy (KWh"),
+    yaxis = element_blank(),
+    margin = list(l = 65)
+  )
+
+
+fig1
+```
+
+
+
+
+```{r}
+p2 <- energy_types %>%
+  subset((country %in% top_countries$country) & (type != "Conventional thermal") & (type != "Other")) %>%
+  ggplot(aes(x = `2016`, xend = `2018`, y = country_name, group = country_name)) +
+  geom_dumbbell(colour_x = "red",
+                size_x = 2.5,
+                size = 0.75,
+                colour = "black",
+                colour_xend = "blue",
+                size_xend = 2.5) +
+  scale_x_continuous(labels = comma) +
+  facet_wrap(~type, ncol = 1) +
+  labs(x = "Energy produced", y = element_blank())
+
+
+p2
+```
+
+
+```{r}
+#combine years and data 
+energy_types <- energy_types %>%
+  pivot_longer(cols = starts_with("2"), #includes 2016, 2017, 2018
+               names_to = "year",
+               values_to = "gigawatt_hours") %>%
+  mutate(year = as.integer(year))
+
+country_totals <- country_totals %>%
+  pivot_longer(cols = starts_with("2"),
+               names_to = "year",
+               values_to = "gigawatt_hour") %>%
+  mutate(year = as.integer(year)) 
+```
+
+##How is power produced in Europe in 2018
+
+
+```{r}
+data <- country_totals %>%
+  filter(year == 2018) %>%
+  mutate(type = fct_reorder(type, gigawatt_hour, sum))
+
+plot(data$type, data$gigawatt_hour, xlab = "Type", ylab = "Energy produced (Gigawatt hours)")
+
+data1 <- energy_types %>%
+  filter(year == 2018)
+
+plot(data$type, data1$gigawatt_hours, xlab = "Type", ylab = "Energy produced (Gigawatt hours)")
+```
+
+
+## Total energy consumption in Europe
+```{r}
+europe_totals <- energy_types %>%
+  group_by(year, type) %>%
+  summarise(total_power = sum(gigawatt_hours)) %>%
+  ungroup() %>%
+  mutate(type = fct_reorder(type, total_power, sum)) 
+
+europe_totals %>%  
+ggplot(aes(year, total_power, fill = type)) +
+  geom_col() +
+  scale_y_continuous(labels = comma) + #scales package
+  labs(x = "Year",
+       y = "Total power (Gigawatt-hours)",
+       title = "How energy usage has change in Europe from 2016-2018",
+       fill = "Energy type")
+
+```
+```{r}
+europe_totals %>%  
+ggplot(aes(year, total_power, fill = type)) +
+  geom_line() +
+  geom_point(shape=21, color="black", fill= "green", size=2.5)
+  scale_y_continuous(labels = comma) + #scales package
+  labs(x = "Year",
+       y = "Total power (Gigawatt-hours)",
+       title = "How energy usage has change in Europe from 2016-2018",
+       fill = "Energy type")
+```
+
+```{r}
+plot(europe_totals$total_power~europe_totals$year)
+lines(europe_totals$type~europe_totals$year)
+
+```
+
+```{r}
+europe_totals %>%
+  filter(year == 2018) %>%
+  mutate(type = fct_reorder(type, total_power, sum)) %>%
+  ggplot(aes(total_power, type)) +
+  geom_col() +
+  scale_x_continuous(labels = comma) +
+  labs(title = "Total power production in 2018 in Europe",
+       y = "Type",
+       x = "Total energy production (Kilowatt hours)")
+  
+```
+
+##Which country make up the most wind power
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

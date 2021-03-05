@@ -1,0 +1,325 @@
+---
+title: "Squirells New York City"
+author: "Ottilie Mitchell - 20318500"
+date: "26/02/2021"
+header-includes:
+   - \usepackage[section]{placeins}
+output:
+  pdf_document: default
+---
+## Background
+This data was collected by The Central Park Squirrel Census 2019 and was carried out to research squirrel locations, population densities, fur coloration patterns, approximate age, human interaction, activities and communication in Central Park, New York.  This green space covers more than 840 acres (Central Park Conservancy, 2021)in central Manhattan, where these omnivorous mammals live alongside 1.632 million people (census.gov, 2021). 
+
+Research into the behaviour and habits of squirrels is essential for their management and conversation as they are vital to the ecosystem, regenerating woodlands, although they are maligned as disease carrying (not to humans), urban pests (Parker et al., 2008). Recorded squirrel behaviour included running climbing, eating or foraging, in close proximity to humans and dogs.
+
+The data was collected using an intricately detailed map of Central Park, that was drawn up using a grid system over 350 hectares, with plots of land measuring 10,000 sq meters to map squirrel habitat (Poon, 2019). Two counts were carried out by a partnership of academics and 300 volunteers, one in the morning and the other in the afternoon.  Although it was impossible to know the exact number as the census relied solely on sightings,  the organisers did factor in the potential for counting the same animal twice, as well as the likely squirrels that remained hidden (Schwaije, 2019). This data formula was popularized in the 50s and 60s by leading squirrel biologist Vagn Flyger and takes in to account the uncertainties of counting squirrels (Poon, 2019).
+
+It was found that approximately 3023 squirrels live in Central Park. The eastern grey squirrel (Sciurus carolinensis) is indigenous to the eastern United States, but was eradicated from New York City sometime before the 1940s and later reintroduced in the mid-19th Century (Schwalje, 2019).  They are an invasive species that threatens the native cinnamon coloured squirrel, competing for food and spreading parapoxvirus, which is lethal to the native cinnamon squirrels, but of which the grey squirrel is immune (CABI, 2019). Grey squirrels are larger and more robust than the cinnamon and can digest seeds with high tannin content, such as acorns, more efficiently (Barthelmess, 2001).  
+
+ 
+Access to the data and data dictionary can be found here: https://github.com/rfordatascience/tidytuesday/blob/master/data/2019/2019-10-29/readme.md 
+
+```{r, include=FALSE, echo=FALSE}
+library(tidyverse)
+library(shiny)
+library(dplyr)
+#install.packages("gganimate")
+library(gganimate)
+library(ggimage)
+library(ggplot2)
+library(readr)
+library(tidyr)
+library(maps)
+#install.packages("lubridate")
+library(lubridate)
+library(tidyverse)
+library(ggmap)
+library(sf)
+theme_set(theme_light())
+
+nyc_squirrels <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-10-29/nyc_squirrels.csv")
+
+```
+
+```{r, echo=FALSE, include=FALSE}
+##First look at data
+
+head(nyc_squirrels)
+```
+
+## Plot sighting throughout October 2018
+```{r, echo=FALSE, include=FALSE}
+#format the date
+nyc_squirrels$date_parsed  <- parse_date(as.character(nyc_squirrels$date), format = "%m%d%Y")
+head(nyc_squirrels$date_parsed)
+
+#seperate out the year, moth and day they were observed
+d <- separate(nyc_squirrels, date_parsed, c("Year", "Month", "Day"))
+head(d)
+
+#all sighting in October 2018
+table(d$Month)
+table(d$Year)
+
+#change day to numeric
+d$Day <- as.numeric(d$Day)
+
+```
+
+```{r, echo=FALSE, include=TRUE}
+hist(d$Day, xlab = "October 2018", ylab = "Number of Squirrels Observed", main = "Number of Squirrels seen in October 2018", col = "brown")
+```
+
+```{r, echo=FALSE, include=FALSE}
+#save chart
+setwd("C:/Users/User/OneDrive - Harper Adams University/C7083 - Data Visulisation/Assignments")
+
+hist(d$Day, xlab = "October 2018", ylab = "Number of Squirrels Observed", main = "Number of Squirrels seen in October 2018", col = "brown")
+
+jpeg(file = "squirrel1.jpeg")
+
+hist(d$Day, xlab = "October 2018", ylab = "Number of Squirrels Observed", main = "Number of Squirrels seen in October 2018", col = "brown")
+
+dev.off()
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+nyc_squirrels$primary_fur_color <- as.factor(nyc_squirrels$primary_fur_color)
+plot(nyc_squirrels$primary_fur_color)
+```
+This dataset recorded 82% of the population being the colour grey, significantly outnumbering other variants.  This was followed by cinnamon at 13% and black 3.4%.  
+
+## Where are grey squirrels found?
+
+Through some preliminary investigation, Grey (Gray) squirrels are the most common in this dataset and all observations were within NYC Central Park.
+
+
+
+```{r, echo=FALSE, include=FALSE}
+#all sighting are in the same park
+nyc_squirrels %>%
+  ggplot(aes(long, lat)) +
+  geom_point() +
+  theme_void()
+
+by_hectare <- nyc_squirrels %>%
+  filter(!is.na(primary_fur_color)) %>%
+  group_by(hectare) %>%
+  summarize(long = mean(long),
+            lat = mean(lat),
+            pct_gray = mean(primary_fur_color == "Gray", na.rm = TRUE),
+            n = n())
+
+by_hectare %>%
+  ggplot(aes(long, lat, size = n)) +
+  geom_point() +
+  theme_void()
+
+#are different coloured squirrels located in specific locations?
+
+
+#%grey squirrels sighted by hectare
+by_hectare %>%
+  filter(n >= 10) %>%
+  ggplot(aes(long, lat, size = n, colour = pct_gray)) +
+  geom_point() +
+  theme_void()
+
+```
+
+```{r, echo=FALSE, include=TRUE}
+#are there more grey squirrels in the north?
+p2 <- by_hectare %>%
+  filter(n >= 10) %>% #at least 10 squirrels sighted
+  ggplot(aes(lat, pct_gray)) +
+  geom_point() +
+  geom_smooth() +
+  labs(title = "Percentage of Grey Squirrels by Latitude in NYC Central Park", x = "Latitude", y = "Grey Squirrels Observed (%)")
+
+p2
+```
+```{r}
+#save chart
+setwd("C:/Users/User/OneDrive - Harper Adams University/C7083 - Data Visulisation/Assignments")
+p2
+jpeg(file = "squirrels2.jpeg")
+p2
+dev.off()
+```
+
+
+Grey (gray) squirrels are more likely to be found in the north of Central Park, with a dip in observations in the middle - due to a pond.
+
+## How do squirrels react to humans?
+
+```{r, include=FALSE, echo=FALSE}
+nyc_squirrels %>%
+  count(approaches, indifferent, runs_from, sort = TRUE) #count the number of squireels which appraoched, were indifferent or ran away
+```
+
+```{r, echo=FALSE, include=FALSE}
+
+by_hectare <-nyc_squirrels %>%
+  add_count(hectare) %>%
+  group_by(hectare, n) %>% #group by which hectare they were observed in
+  summarise_at(vars(long, lat, runs_from, indifferent), mean) %>%
+    ungroup() %>%
+  filter(n >= 10) 
+
+by_hectare %>%
+    ggplot(aes(long, lat, size = n, colour = runs_from)) +
+    geom_point() +
+    theme_void() +
+  scale_color_gradient2(low = "blue", mid = "yellow", high = "green", midpoint = .3, labels = scales::percent) +
+  labs(colour = "Percenage of squirrels that run away",
+       size = "Number of squirels observed")
+```
+
+```{r, echo=FALSE, include=FALSE}
+#read in Central park shapefile
+central_park_sf <- read_sf("C:/Users/User/Documents/Data Science/C7083 - Data Visulisation/Assignments/Squirrels NYC/CentralAndProspectParks")
+
+ggplot(central_park_sf) +
+  geom_sf()
+
+```
+
+```{r, echo=FALSE, include=TRUE}
+by_hectare <-nyc_squirrels %>%
+  add_count(hectare) %>%
+  group_by(hectare, n) %>%
+  summarise_at(vars(long, lat, runs_from, indifferent), mean) %>%
+    ungroup() %>%
+  filter(n >= 10)
+
+p3 <- ggplot(by_hectare) +
+  geom_sf(data = central_park_sf) +
+  geom_point(aes(long, lat, size = n, colour = runs_from)) +
+  theme_void() +
+  scale_color_gradient2(low = "yellow", mid = "orange", high = "red", midpoint = .3, labels = scales::percent) +
+  labs(colour = "Percenage of squirrels that run away",
+       size = "Number of squirels observed",
+       title = "Squirrel observations in Central Park NYC") +
+  coord_sf(datum = NA)
+
+p3
+```
+
+Squirrels are more likely to run away in the north of the park.
+
+```{r, echo=FALSE}
+#save chart
+setwd("C:/Users/User/OneDrive - Harper Adams University/C7083 - Data Visulisation/Assignments")
+p3
+jpeg(file = "squirrels3.jpeg")
+p3
+dev.off()
+```
+
+## What do squirrels do (Shiny app)?
+```{r, echo=FALSE, include=FALSE}
+nyc_squirrels %>%
+  gather(activity, doing, ends_with("ing")) %>%
+  filter(doing) %>%
+  count(activity, sort = T)
+
+by_hectare <-nyc_squirrels %>%
+  add_count(hectare) %>%
+  group_by(hectare, n) %>%
+  summarise_at(vars(long, lat, kuks:tail_twitches, ends_with("ing")), mean) %>% #add ending with "ing" to tby_hectare
+    ungroup()
+
+by_hectare %>%
+  filter(n >= 10) %>%
+  ggplot() +
+  geom_sf(data = central_park_sf) +
+  geom_point(aes(long, lat, size = n, colour = kuks)) +
+  theme_void() +
+  scale_color_gradient2(low = "blue", mid = "yellow", high = "green", midpoint = .3, labels = scales::percent) +
+  labs(colour = "Percenage of squirrels that run away",
+       size = "Number of squirels observed",
+       title = "Squirrel observations in Central Park NYC") +
+  coord_sf(datum = NA)
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+library(shiny)
+
+squirrel_variables <- by_hectare %>%
+    select(-(hectare:lat)) %>%
+    colnames() 
+
+names(squirrel_variables) <- squirrel_variables %>%
+    str_replace("_", " ") %>%
+    str_to_title()
+
+
+squirrel_variables
+# Define UI for application that draws a histogram
+ui <- fluidPage(
+
+    # Application title
+    titlePanel("Central Park Squirrels"),
+
+    # Sidebar with a slider input for number of bins 
+    sidebarLayout(
+        sidebarPanel(
+            sliderInput("min_squirrels",
+                        "Minimum squirrels:",
+                        min = 1,
+                        max = 30,
+                        value = 10),
+            selectInput("variable",
+                        "Variable:",
+                        choices = squirrel_variables)
+        ),
+
+        # Show a plot of the generated distribution
+        mainPanel(
+           plotOutput("park_plot")
+        )
+    )
+)
+
+
+# Define server logic required to draw a histogram
+server <- function(input, output) {
+
+    output$park_plot <- renderPlot({
+        # generate bins based on input$bins from ui.R
+        var <- sym(input$variable)
+        
+        by_hectare %>%
+            filter(n >= input$min_squirrels) %>%
+            ggplot() +
+            geom_sf(data = central_park_sf) +
+            geom_point(aes(long, lat, size = n, colour = !!var)) +
+            theme_void() +
+            scale_color_gradient2(low = "blue", mid = "yellow", high = "green", 
+                                  midpoint = .3, labels = scales::percent) +
+            labs(size = "Number of squirels observed") +
+            coord_sf(datum = NA)
+    })
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+by_hectare %>%
+  gather(variable, value, kuks:foraging) %>%
+  filter(n >= 10) %>%
+  ggplot(aes(value)) +
+  geom_histogram() +
+  facet_wrap(~variable)
+```
+
+
+
+
+

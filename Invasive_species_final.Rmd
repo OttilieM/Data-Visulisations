@@ -1,0 +1,304 @@
+---
+title: "Invasive_species_final"
+author: "Ottilie Mitchell"
+date: "26/02/2021"
+output: html_document
+---
+---
+title: "Invasive species in African countries"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+##Background
+
+Invasive species have two distinct elements, species that are introduced consciously and accidental invasive species (AIS) such as invertebrates and pathogens, which can wreak havoc on a country’s ecosystem and economy (Sandlund et al., 2001).  An unrecognised side effect of globalisation is the introduction of AIS invading native ecosystems, often brought about through improved global transportation. Goods are moved around the world quickly providing ideal opportunities for invaders to stow away in ships, planes, trucks, shipping containers, etc., accidentally introducing AIS.  
+
+Poorer economies are reliant on international trade and have little power to regulate imports, so the introduction of highly dangerous species continues (Early et al., 2016), with developing nations unable to respond unchecked. 
+
+The growing incomes of African nations have led to increased demand for imported products (Sandlund et al., 2001), with the deliberate introduction of species particularly related to agriculture, forestry and ornamental species for aesthetic reasons. The bulk of dietary requirements are met by species that have been introduced from elsewhere (Hoyt 1992).  For example, in African countries, cattle, goats, maize and cassava are all introduced species. 
+
+Developing African countries are particularly at threat, as people rely on the land for their livelihoods, with little cushion to fall back on when crops fail due to invasive species.  An example of a biological invasion includes the introduction of prickly pear to Africa, which devastated grassland, leading to cattle being malnourished (Early et al., 2016).
+
+International cooperation is needed as developed countries are prepared to identify invasive species threats and keep them out, whilst developing countries lack the operational infrastructure to prevent and deal with harmful introductions (Early et al., 2016). By identifying regions which are most vulnerable, governments can make informed decisions regarding the deployment of resources necessary to protect their borders and agricultural industries, by limiting the further spread of invasive species (CABI, 2019).
+
+This dataset looks at the associated costs and threat of invasive species to African countries, giving their mean GDP, environmental systems and the kingdoms of each species. The dataset was created by merging 3 separate datasets; table_1 and table_3 were created as part of the Paini et al. (2016) paper “Global threat to Agriculture from Invasive Species” and Africa_species from griis.org (2019).
+
+```{r, echo=FALSE, include=FALSE}
+library("tidytuesdayR")
+library(tidyverse)
+library(tidyr)
+library(ggplot2)
+#install.packages("hrbrthemes")
+library(hrbrthemes)
+library(plotly)
+library(ggalt)
+library(dplyr)
+
+#load data
+
+
+africa_species <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-09-25/africa_species.csv")
+
+table_1 <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-09-25/table_1.csv")
+
+table_3 <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2018/2018-09-25/table_3.csv")
+
+data <- merge(africa_species, table_1, by = "country")
+
+data <- merge(data, table_3, by = "country")
+
+data <- subset(data, select = -c(authority, rank.x, rank.y)) #remove authority as not useful  
+data <- na.omit(data) #remove missing data
+
+#convert invasion cost to 10,000,000
+data$invasion_cost <- data$invasion_cost/10000000
+
+#convert gdp to 10,000,000
+data$gdp_mean <- data$gdp_mean/10000000
+
+#convert invasion threat into %
+data$invasion_threat <- data$invasion_threat*100
+colSums(is.na(data))
+
+#correct country names
+data$country[data$country == "Democratic Republic of the Congo"] <- "Congo"
+
+data$country[data$country == "United Republic of Tanzania"] <- "Tanzania"
+
+data$country[data$country == "Gambia (the)"] <- "Gambia"
+```
+
+
+
+
+```{r, echo=FALSE, include=TRUE}
+#change kingdom into a factor
+data$kingdom <- as.factor(data$kingdom)
+
+#create new dataframe for kingdoms
+df_kingdom <- data %>%
+  group_by(kingdom) %>%
+  summarise(count=n()) %>%
+  filter(kingdom != "NA") #removes missing data
+
+p <- df_kingdom %>%
+  mutate(kingdom = fct_reorder(kingdom, count)) %>% #reorders the kingdoms smallest to largest
+  ggplot(aes(x = kingdom, y = count, fill = kingdom)) +
+  geom_col() +
+  labs(title = "Kingdoms of invasive species in Africa", x = "Kingdom", y = "Count") +
+  scale_y_continuous(name = "Count", trans="log2", limits = c(1, 5500)) + #transforms the y axis onto a log scale
+  theme_gray()
+
+ p <- p +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) #x axis text at 45degrees
+
+p
+
+```
+
+```{r, include=FALSE, echo=FALSE}
+#save chart
+setwd("C:/Users/User/OneDrive - Harper Adams University/C7083 - Data Visulisation/Assignments")
+p
+jpeg(file = "invasive_species1.jpeg")
+p
+dev.off()
+```
+
+
+We can see from this graph that there are many more species part of the animalia and plantae kingdom, than the other kingdoms. Therefore, these kingdoms are more likely to have have a higher impact and cost to coutries.
+
+```{r, echo=FALSE, include=FALSE}
+#only want to look at animalia and plantae
+data1 <- data %>%
+  filter(kingdom == "Animalia" | kingdom == "Plantae")
+
+#data1 <- data 
+  
+#data1$kingdom <- factor(data$kingdom, levels = c("Animalia", "Plantae"))
+
+
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+#plot invasion threat against invasion cost
+plot1 <- ggplot(data1, aes(x=invasion_cost, y=invasion_threat, colour = kingdom)) +
+  geom_point(size = 1.5) +
+  geom_smooth(method = lm, colour = "red", se = FALSE) +
+  labs(title = "Invasion threat and cost of Invasive species in Afica", x = "Invasion cost (10 million $)", y = "Invasion Threat (%)") +
+  theme_gray()
+
+plot1
+
+plot <- ggplot(data1, aes(x=invasion_cost, y=invasion_threat, col = kingdom)) +
+  geom_point(size = 1.5) +
+  labs(title = "Invasion threat and cost of Invasive species in Africa", x = "Invasion cost (10 million $)", y = "Invasion Threat (%)") +
+  geom_jitter() +
+  theme_gray()
+```
+
+```{r, echo=FALSE, include=TRUE}
+data2 <- data %>%
+  filter(kingdom == "Plantae")
+
+plot2 <- ggplot(data2, aes(x=invasion_cost, y=invasion_threat, col = kingdom)) +
+  geom_point(size = 1.5) +
+  labs(title = "Invasion threat and cost of Invasive species in Africa", x = "Invasion cost (10 million $)", y = "Invasion Threat (%)") +
+  geom_jitter() +
+  theme_gray()
+
+ggplotly(plot2)
+#make interactive
+
+```
+
+```{r, include= FALSE, echo= FALSE}
+
+data3 <- data2 %>%
+  subset(select = c(invasion_cost, invasion_threat, kingdom)) %>%
+  slice_max(order_by = data1$invasion_threat, n = 10) %>%  # top 10
+  slice_min(order_by = data1$invasion_threat, n = 10) #bottom 10
+
+
+plot3 <- ggplot(data2, aes(x=invasion_cost, y=invasion_threat, col = kingdom)) +
+  geom_point(size = 1.5) +
+  labs(title = "Invasion threat and cost of Invasive species in Africa", x = "Invasion cost (10 million $)", y = "Invasion Threat (%)") +
+  geom_jitter() +
+  theme_gray()
+
+ggplotly(plot3)
+
+```
+
+
+As there are many more plantae species than any other kingdom, this is the only kingdom that has been plotted. As the invasion threat increase, the invasion cost increases, however, there is a clear anomaly to this, where the invasion threat is low (31.94), but the invasion cost is very high ($10,030,000,000). How does the cost of invasion of plantea species change based on country's mean gdp?
+
+
+```{r, echo=FALSE, include=FALSE}
+#create new dataframes for each kingdom
+df <- split(data, data$kingdom)
+
+#just going to concentrate on animalia and plantae
+Animalia <- df$Animalia
+Plantae <- df$Plantae
+
+
+#Bacteria <- df$Bacteria
+
+#Chromista <- df$Chromista
+
+#Fungi <- df$Fungi
+
+
+#Viruses <- df$Viruses
+
+#look at the dataframes
+head(Animalia)
+head(Plantae)
+
+```
+
+
+```{r, echo=FALSE, include=FALSE}
+#convert cost and gdp into log, so they are more comparable
+Animalia$loginvasioncost <- log(Animalia$invasion_cost)
+Animalia$loggdp <- log(Animalia$gdp_mean)
+
+#linear model so we can input an abline
+lm <- lm(Animalia$loginvasioncost~Animalia$loggdp)
+
+
+plot(Animalia$loggdp, Animalia$loginvasioncost, main = "The Relationship Between Mean GDP and the Invasive
+     Cost of Animalia Species", xlab = "Mean GDP (10 million $)", ylab = "Invasion cost (10 million $)")
+abline(lm, col = "red")
+```
+
+
+```{r, echo=FALSE, include=TRUE}
+#convert cost and gdp into log, so they are more comparable
+Plantae$loginvasioncost <- log(Plantae$invasion_cost)
+Plantae$loggpd <- log(Plantae$gdp_mean)
+
+#linear model so we can input an abline
+lm1 <- lm(Plantae$loginvasioncost~Plantae$loggpd)
+
+plot(Plantae$loggpd, Plantae$loginvasioncost, pch = 16, col = "green3", main = "The Relationship Between Mean GDP and the Invasive
+     Cost of Plantae Species", xlab = "Mean GDP (10 million $)", ylab = "Invasion cost (10 million $)")
+abline(lm1, col = "red")
+```
+
+There is a strong positive correlation, as mean GDP increase, the invasion cost increases. This shows that as countries become more developed, having a higher GDP, there is a higher cost to invasions.How does this differ beteen African countries?
+
+```{r, echo=FALSE, include=FALSE}
+#save chart
+setwd("C:/Users/User/OneDrive - Harper Adams University/C7083 - Data Visulisation/Assignments")
+
+plot(Plantae$loggpd, Plantae$loginvasioncost, pch = 16, col = "green3", main = "The Relationship Between Mean GDP and the Invasive
+     Cost of Plantae Species", xlab = "Mean GDP (10 million $)", ylab = "Invasion cost (10 million $)")
+abline(lm1, col = "red")
+
+jpeg(file = "invasive_species2.jpeg")
+
+plot(Plantae$loggpd, Plantae$loginvasioncost, pch = 16, col = "green3", main = "The Relationship Between Mean GDP and the Invasive
+     Cost of Plantae Species", xlab = "Mean GDP (10 million $)", ylab = "Invasion cost (10 million $)")
+abline(lm1, col = "red")
+dev.off()
+```
+
+
+```{r, echo=FALSE, include=TRUE}
+#remove missing data
+data1 <- na.omit(data)
+
+#convert cost and gdp into log, so they are more comparable
+data1$costlog <- log(data1$invasion_cost)
+data1$gdplog <- log(data1$gdp_mean)
+
+
+#round data to 2 decimal points
+data1$costlog <- round(data1$costlog, digits = 2)
+data1$gdplog <- round(data1$gdplog, digits = 2)
+
+#dumbbell chart showing the cost of invasive species to each country and their gdp
+p2 <- data1 %>%
+  arrange(costlog) %>%
+  mutate(country = factor(country, unique(country))) %>%
+ggplot(aes(x=costlog, xend=gdplog, y = country)) +
+  geom_dumbbell(size_x = 3, 
+                      size_xend = 3,
+                      colour_x="brown1", 
+                      colour_xend = "cornflowerblue") +
+  geom_segment(aes(x=costlog, 
+                         xend=gdplog, 
+                         y=country, 
+                         yend=country), 
+                     color="azure4", size=1) +
+        labs(y="Country", x="log (10 million $)", 
+             title="Country's cost of invasion and mean GDP", 
+             subtitle="Logs taken of both variables") +
+        geom_point(x = 8, y = 5, colour = "brown1", size = 3, inherit.aes = F) + #this adds a point which will act as a legend
+  annotate("text", label = "GDP", x = 8.5, y = 5) + #this add the text next to the point
+  geom_point(x = 8, y = 3, colour = "cornflowerblue", size = 3, inherit.aes = F) +
+  annotate("text", label = "Invasion Cost", x = 9, y = 3) +
+  geom_dumbbell()
+
+p2
+```
+As a general trend, as Mean GDP increases, the Invasion cost increases. There are exceptions to this, for example Equatorial Guinea has the lowest GDP, however has a high invasion cost.
+
+
+```{r, echo=FALSE, include=FALSE}
+#save chart
+setwd("C:/Users/User/OneDrive - Harper Adams University/C7083 - Data Visulisation/Assignments")
+p2
+jpeg(file = "invasive_species3.jpeg")
+p2
+dev.off()
+
+```
+
