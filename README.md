@@ -79,6 +79,7 @@ This data was collected by The Central Park Squirrel Census 2019 and was carried
 
 ### Interactive graph
 
+![](europe5.png)
 
 <!-- EUROPEAN ENERGY -->
 
