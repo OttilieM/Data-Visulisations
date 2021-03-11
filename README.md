@@ -40,10 +40,35 @@ Each file contain 4 data visulisations including those made in base r, ggplot an
 <!-- INVASIVE SPECIES AFRICA -->
 ## Invasive Species Africa
 
-###gg plot
+### gg plot
 
-###Base r plot
+![](invasive_species1.jpeg)
 
-###gg plot
+### Base r plot
 
-###Interactive graph
+![](invasive_species2.jpeg)
+
+### gg plot
+
+![](invasive_species3.jpeg)
+
+### Interactive graph
+
+
+<!-- NYC Squirrel Census -->
+
+## NYC Squirrel Census
+
+### Base r plot
+
+![](.jpeg)
+
+### gg plot
+
+![](invasive_species3.jpeg)
+
+### gg plot
+
+![](invasive_species1.jpeg)
+
+### Interactive graph
