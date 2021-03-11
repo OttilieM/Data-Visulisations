@@ -46,16 +46,24 @@ This dataset looks at the associated costs and threat of invasive species to Afr
 
 ![](invasive_species1.jpeg)
 
+In this first visulisation from this dataset, I wanted to see how many invasive species were part of each kingdom, whih identified that there are many more invasive species part of the animalia and plantae kingdoms than any other kingdoms.  
+
 ### Base r plot
 
 ![](invasive_species2.jpeg)
 
+Having identified that are the most invasive species as part of the Plantae kingdom, I wanted to see if there was a relationship between the Mean GDP and the Invasion cost. This showed that there was a strong positive correlation between mean GDP and Invasion cost.
 ### gg plot
 
 ![](invasive_species3.jpeg)
 
+I now wanted to see how the correlation of mean GDP and invasion cost differed in African countries. As a general trend, mean GDP increases as the invasion cost increases. Tere are exceptions to this, for example Equatorial Guinea has the lowest GDP, however has a high invasion cost.
 ### Interactive graph
 
+
+![](species3.png)
+
+I used this visuliation to see how Invasion threat and cost of invasive species correlated. The benefit of this graph being interactive, is that it includes a zoom feature, highlighting that there were many points at each visual point.
 
 <!-- NYC SQUIRREL CENSUS -->
 
@@ -68,18 +76,25 @@ This data was collected by The Central Park Squirrel Census 2019 and was carried
 
 ![](Squirrel1.jpeg)
 
-### gg plot
-
-![](squirrels2.jpeg)
+As an initial look at the data, I wanted to see if squirrels were more likely to be sighted at a part of the month in October. The graph shows that the most squirrels were seen at the begnining on the month, and then no real trend throughout the rest on the month.
 
 ### gg plot
 
+![](squirrels2.jpeg) 
+
+Through some preliminary investigation, Grey squirrels are the most common in this dataset and all observations were within NYC Central Park. This lead me to wonder if there was any significant as to where in the park grey squirrels were sighted. This shows thta grey squirrels are more likely to be found in the north of Central park, with a dip in observations in the middle due to a pond.
+
+### gg plot
 
 ![](squirrels3.jpeg)
 
+This graph starte to look at how squirrels reacted to humans, showing squirrels are more likely to run away in the north of the park.
+
 ### Interactive graph
 
-![](europe5.png)
+![](squirrel4.png)
+
+Using a shinyApp, I was able to plot on the graph all the activities and behaviorurs of grey squirrels in Central Park.
 
 <!-- EUROPEAN ENERGY -->
 
@@ -91,14 +106,23 @@ These data visualisations looked at 2 datasets based on European energy, provide
 
 ![](europe1.jpeg)
 
+Firstly, looking at this dataset I wanted to see how overall power was produced in Europe in 2018. This shows that non-renuable energy (Conventional thermal) was still producing a lot of European energy.
 ### Base r plot
 
 ![](europe2.jpeg)
 
-### gg plot
+Considering this total power production in 2018, I wanted to see how much of this energy produced was exported, and conversely how much was imported.
 
+### Interactive graph
+
+![](europe5.png)
+
+Using plotly, I could plot to see how energy production has changed over time. Although conventional thermal is still producing much of Europe's energy, it has significantly reduced in 2018, with small increases in most renewable sources.
+
+### gg plot
 
 ![](europe3.jpeg)
 
-### Interactive graph
+Having seen that there were only small changes to renewable energy production, I picked out the top 5 energy producing countries to see how energy production has chagne from 2016 to 2018.
+
 
