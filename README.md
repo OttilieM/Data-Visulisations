@@ -46,18 +46,19 @@ This dataset looks at the associated costs and threat of invasive species to Afr
 
 ![](invasive_species1.jpeg)
 
-In this first visulisation from this dataset, I wanted to see how many invasive species were part of each kingdom, whih identified that there are many more invasive species part of the animalia and plantae kingdoms than any other kingdoms.  
+In this first visulisation from this dataset, I wanted to see how many invasive species were part of each kingdom, which identified that there are many more invasive species part of the animalia and plantae kingdoms than any other kingdoms.  
 
 ### Base r plot
 
 ![](invasive_species2.jpeg)
 
-Having identified that are the most invasive species as part of the Plantae kingdom, I wanted to see if there was a relationship between the Mean GDP and the Invasion cost. This showed that there was a strong positive correlation between mean GDP and Invasion cost.
+Having identified that the most invasive species as part of the Plantae kingdom, I wanted to see if there was a relationship between the Mean GDP and the Invasion cost. This showed that there was a strong positive correlation between mean GDP and Invasion cost.
 ### gg plot
 
 ![](invasive_species3.jpeg)
 
-I now wanted to see how the correlation of mean GDP and invasion cost differed in African countries. As a general trend, mean GDP increases as the invasion cost increases. Tere are exceptions to this, for example Equatorial Guinea has the lowest GDP, however has a high invasion cost.
+I now wanted to see how the correlation of mean GDP and invasion cost differed in African countries. As a general trend, mean GDP increases as the invasion cost increases. There are exceptions to this, for example Equatorial Guinea has the lowest GDP, however has a high invasion cost.
+
 ### Interactive graph
 
 
@@ -82,19 +83,19 @@ As an initial look at the data, I wanted to see if squirrels were more likely to
 
 ![](squirrels2.jpeg) 
 
-Through some preliminary investigation, Grey squirrels are the most common in this dataset and all observations were within NYC Central Park. This lead me to wonder if there was any significant as to where in the park grey squirrels were sighted. This shows thta grey squirrels are more likely to be found in the north of Central park, with a dip in observations in the middle due to a pond.
+Through some preliminary investigation, Grey squirrels are the most common in this dataset and all observations were within NYC Central Park. This lead me to wonder if there was any significant as to where in the park grey squirrels were sighted. This shows that grey squirrels are more likely to be found in the north of Central park, with a dip in observations in the middle due to a pond.
 
 ### gg plot
 
 ![](squirrels3.jpeg)
 
-This graph starte to look at how squirrels reacted to humans, showing squirrels are more likely to run away in the north of the park.
+This graph started to look at how squirrels reacted to humans, showing squirrels are more likely to run away in the north of the park.
 
 ### Interactive graph
 
 ![](squirrel4.png)
 
-Using a shinyApp, I was able to plot on the graph all the activities and behaviorurs of grey squirrels in Central Park.
+Using a shinyApp, I was able to plot on the map of Central Park all the activities and behaviorurs of grey squirrels in Central Park.
 
 <!-- EUROPEAN ENERGY -->
 
@@ -107,6 +108,7 @@ These data visualisations looked at 2 datasets based on European energy, provide
 ![](europe1.jpeg)
 
 Firstly, looking at this dataset I wanted to see how overall power was produced in Europe in 2018. This shows that non-renuable energy (Conventional thermal) was still producing a lot of European energy.
+
 ### Base r plot
 
 ![](europe2.jpeg)
@@ -126,3 +128,14 @@ Using plotly, I could plot to see how energy production has changed over time. A
 Having seen that there were only small changes to renewable energy production, I picked out the top 5 energy producing countries to see how energy production has chagne from 2016 to 2018.
 
 
+## References
+
+Census.gov. 2021. Rankings by population.[online] *census.gov* Available at: Ranking by Population - Places in Manhattan - Place Rankings - Data Commons (Accessed: 12th Feb. 2021)
+
+Central Park Conservancy. 2021. About us. [online] *Central Park Conservancy.* Available at: About the Central Park Conservancy | Central Park Conservancy (centralparknyc.org) (Accessed: 12th Feb. 2021)
+
+Eurostat. 2020. Shedding light on energy in the EU. [online] *Eurostat Statistics explained.* Available at: https://ec.europa.eu/eurostat/cache/infographs/energy/index.html (Accessed: 15th Feb. 2021)
+
+Griis. 2019. Sources. [online] *Global register of introduced and invasive species*. Available at: http://www.griis.org/sources.php (Accessed: 29th Feb. 2021)
+
+Paini, D.R., Sheppard, A.W., Cook, D.C., De Barra, P.J., Worner, S.P & Thomas, M.B. 2016. Global threat to agriculture from invasive species. *PNAS.* 133(27), pp. 7575-7579.
